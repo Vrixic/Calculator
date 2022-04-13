@@ -57,15 +57,15 @@ private:
 private:
 	void OnButtonClicked(wxCommandEvent& event);
 
-	//void OnReSize(wxSizeEvent& event);
+	void OnReSize(wxSizeEvent& event);
 	
 	//void OnKeyDown(wxKeyEvent& event);
 	
-	//void ProcessOperators(unsigned int id);
+	void ProcessOperators(unsigned int id);
 	
 	//void ProcessOperation();
 	
-	//void ProcessNumbers(unsigned int id);
+	void ProcessNumbers(unsigned int id);
 	
 	//ArithmeticOperator GetOperatorFromChar(char o);
 

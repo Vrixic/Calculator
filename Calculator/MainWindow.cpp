@@ -56,7 +56,7 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Vrij",
 	mClearBtn->SetFont(*mMainFont);
 	mClearBtn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MainWindow::OnButtonClicked, this);
 
-	//this->Bind(wxEVT_SIZE, &MainWindow::OnReSize, this);
+	this->Bind(wxEVT_SIZE, &MainWindow::OnReSize, this);
 	//mLabel->Bind(wxEVT_KEY_DOWN, &MainWindow::OnKeyDown, this);
 }
 
@@ -73,8 +73,231 @@ void MainWindow::OnButtonClicked(wxCommandEvent& event)
 {
 	unsigned int id = event.GetId();
 
-	
+	if (mLabel->GetLabelText() == '0' && id == 0)
+		return;
+
+	if (id == 20) // Clear
+	{
+		mLabel->SetLabelText("0");
+		mPrevLabel->SetLabelText("");
+		mCurrentString = "";
+		bFirstClick = true;
+	}
+	else if (mLabel->GetLabelText() == "0" && bFirstClick)
+	{
+		mLabel->SetLabelText(btnLabelCodes[id]);
+		ProcessNumbers(id);
+		bFirstClick = false;
+	}
+	else if (id == 0)// decimal
+	{
+		mLabel->AppendText(".");
+		mCurrentString.Append(".");
+	}
+	else if (id == 4)// Negate
+	{
+		if (mLabel->GetLabelText()[0] != '-')
+		{
+			wxString temp = "-";
+			temp.Append(mCurrentString);
+			mCurrentString = temp;
+			mLabel->SetLabelText(mCurrentString);
+		}
+		else
+		{
+			mCurrentString = mCurrentString.substr(1, mCurrentString.length());
+			mLabel->SetLabelText(mCurrentString);
+		}
+	}
+	else if (id == 9)// Binary
+	{
+
+	}
+	else if (id == 10)// Hex
+	{
+
+	}
+	else if (id < 14)
+	{
+		mLabel->AppendText(btnLabelCodes[id]);
+		ProcessNumbers(id);
+	}
+	else if (id > 13) // basic operations on numbers  
+	{
+		ProcessOperators(id);
+	}
 
 	event.Skip();
 }
 
+void MainWindow::OnReSize(wxSizeEvent& event)
+{
+	if (bStartUpReSize)
+	{
+		bStartUpReSize = false;
+		return;
+	}
+
+	// calculating resize scaler
+	int width = event.GetSize().GetWidth();
+	int height = event.GetSize().GetHeight();
+
+	float widthScaler = (float)width / mWindowWidth;
+	float heightScaler = (float)height / mWindowHeight;
+
+	// updating variables 
+	mWindowWidth = width;
+	mWindowHeight = height;
+
+	mXOffset *= widthScaler;
+	mYOffset *= heightScaler;
+
+	// Resize and reposition buttons
+	wxPoint btnPos;
+	wxSize btnSize(mBtnWidth * widthScaler, mBtnHeight * heightScaler);
+	wxButton* btn;
+
+	for (unsigned int x = 0; x < M_FIELD_WIDTH; x++)
+	{
+		for (unsigned int y = 0; y < M_FIELD_HEIGHT; y++)
+		{
+			btn = mButtons[y * M_FIELD_WIDTH + x];
+
+			btnPos = btn->GetPosition();
+
+			btnPos.x = ((x * (mBtnWidth * widthScaler)) + ((x + 1) * mXOffset));
+			btnPos.y = ((y * (mBtnHeight * heightScaler)) + ((y + 1) * mYOffset));
+
+			btn->SetPosition(btnPos);
+			btn->SetSize(btnSize);
+		}
+	}
+
+	btnPos = mClearBtn->GetPosition();
+	btnSize = mClearBtn->GetSize();
+
+	btnPos.x *= widthScaler;
+	btnPos.y *= heightScaler;
+
+	btnSize.x *= widthScaler;
+	btnSize.y *= heightScaler;
+
+	mClearBtn->SetPosition(btnPos);
+	mClearBtn->SetSize(btnSize);
+
+	mBtnWidth *= widthScaler;
+	mBtnHeight *= heightScaler;
+
+	// reposition and resizing the label
+	mLabelWidth *= widthScaler;
+	mLabelHeight *= heightScaler;
+
+	mFontSize *= heightScaler;
+
+	wxPoint labelPos = mLabel->GetPosition();
+
+	labelPos.x *= widthScaler;
+	labelPos.y *= heightScaler;
+
+	mLabel->SetPosition(labelPos);
+	mLabel->SetSize(wxSize(mLabelWidth, mLabelHeight));
+
+	mMainFont->SetPointSize(mFontSize);
+
+	mLabel->SetFont(*mMainFont);
+
+	event.Skip();
+}
+
+void MainWindow::ProcessOperators(unsigned int id)
+{
+
+	switch (id)
+	{
+	case 14: // Mod
+		if (mLabel->GetLabelText().Last() != '%')
+		{
+			mLabel->AppendText("%");
+			mCurrentString.Append("%");
+		}
+
+		break;
+	case 15: // Equals
+		if (mLabel->GetLabelText().Last() != '=')
+		{
+			mLabel->AppendText("=");
+			mCurrentString.Append("=");
+			//ProcessOperation();
+		}
+		break;
+	case 16: // Add
+		if (mLabel->GetLabelText().Last() != '+')
+		{
+			mLabel->AppendText("+");
+			mCurrentString.Append("+");
+		}
+		break;
+	case 17: // Minus
+		if (mLabel->GetLabelText().Last() != '-')
+		{
+			mLabel->AppendText("-");
+			mCurrentString.Append("-");
+		}
+		break;
+	case 18: // Multiply
+		if (mLabel->GetLabelText().Last() != '*')
+		{
+			mLabel->AppendText("*");
+			mCurrentString.Append("*");
+		}
+		break;
+	case 19: // Divide
+		if (mLabel->GetLabelText().Last() != '/')
+		{
+			mLabel->AppendText("/");
+			mCurrentString.Append("/");
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+void MainWindow::ProcessNumbers(unsigned int id)
+{
+	switch (id)
+	{
+	case 1:
+		mCurrentString.Append('1');
+		break;
+	case 2:
+		mCurrentString.Append('4');
+		break;
+	case 3:
+		mCurrentString.Append('7');
+		break;
+	case 5:
+		mCurrentString.Append('0');
+		break;
+	case 6:
+		mCurrentString.Append('2');
+		break;
+	case 7:
+		mCurrentString.Append('5');
+		break;
+	case 8:
+		mCurrentString.Append('8');
+		break;
+	case 11:
+		mCurrentString.Append('3');
+		break;
+	case 12:
+		mCurrentString.Append('6');
+		break;
+	case 13:
+		mCurrentString.Append('9');
+		break;
+	default:
+		break;
+	}
+}
