@@ -301,3 +301,114 @@ void MainWindow::ProcessNumbers(unsigned int id)
 		break;
 	}
 }
+
+void MainWindow::ProcessOperation()
+{
+	wxString temp(mCurrentString);
+	wxString numStr = "";
+
+	mOperators.clear();
+	mNums.clear();
+
+	double num = -1;
+
+	if (temp.GetChar(0) != '-')
+	{
+		mOperators.push_back(ArithmeticOperator::Add);
+	}
+	else
+	{
+		mOperators.push_back(ArithmeticOperator::Multiply);
+	}
+
+	bool bHasDecimal = false;
+
+	for (int i = 0; i < temp.length(); i++)
+	{
+		if (temp.GetChar(i) == '.')
+			bHasDecimal = true;
+
+		if (temp.GetChar(i) == '+' ||
+			temp.GetChar(i) == '-' ||
+			temp.GetChar(i) == '/' ||
+			temp.GetChar(i) == '*' ||
+			temp.GetChar(i) == '%' ||
+			temp.GetChar(i) == '=')
+		{
+			mOperators.push_back(GetOperatorFromChar(temp.GetChar(i)));
+
+			numStr = temp.substr(0, i);
+			numStr.ToDouble(&num);
+
+			mNums.push_back(num);
+
+			temp = temp.substr(i + 1, temp.length());
+
+			i = 0;
+		}
+	}
+
+	num = 0;
+
+	bool bNanError = false;
+
+	for (int i = 0; i < mOperators.size() - 1; i++)
+	{
+		switch (mOperators[i])
+		{
+		case ArithmeticOperator::Add:
+			num += mNums[i];
+			break;
+		case ArithmeticOperator::Minus:
+			num -= mNums[i];
+			break;
+		case ArithmeticOperator::Mod:
+			num = (int)num % (int)mNums[i];
+			break;
+		case ArithmeticOperator::Multiply:
+			num *= mNums[i];
+			break;
+		case ArithmeticOperator::Divide:
+			if ((int)num % (int)mNums[i] != 0)
+				bHasDecimal = true;
+
+			if (mNums[i] != 0)
+				num /= mNums[i];
+			else
+				bNanError = true;
+			break;
+		default:
+			break;
+		}
+	}
+
+
+	mPrevLabel->SetLabelText(mCurrentString);
+	if (!bNanError)
+		if (bHasDecimal)
+			mLabel->SetLabelText(std::to_string(num));
+		else
+			mLabel->SetLabelText(std::to_string((int)num));
+	else
+		mLabel->SetLabelText("Overflow Error");
+
+	mCurrentString = "" + std::to_string(num);
+}
+
+ArithmeticOperator MainWindow::GetOperatorFromChar(char o)
+{
+	if (o == '+')
+		return ArithmeticOperator::Add;
+	else if (o == '-')
+		return ArithmeticOperator::Minus;
+	else if (o == '/')
+		return ArithmeticOperator::Divide;
+	else if (o == '*')
+		return ArithmeticOperator::Multiply;
+	else if (o == '%')
+		return ArithmeticOperator::Mod;
+	else if (o == '=')
+		return ArithmeticOperator::Equals;
+	else
+		return ArithmeticOperator::None;
+}

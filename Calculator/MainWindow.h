@@ -48,7 +48,7 @@ private:
 	bool bStartUpReSize = true;
 
 	wxString mCurrentString;
-	
+
 	std::vector<ArithmeticOperator> mOperators; // all user entered operators
 	std::vector<double> mNums; // all user entered nums
 
@@ -58,16 +58,16 @@ private:
 	void OnButtonClicked(wxCommandEvent& event);
 
 	void OnReSize(wxSizeEvent& event);
-	
+
 	//void OnKeyDown(wxKeyEvent& event);
-	
+
 	void ProcessOperators(unsigned int id);
-	
-	//void ProcessOperation();
-	
+
+	void ProcessOperation();
+
 	void ProcessNumbers(unsigned int id);
-	
-	//ArithmeticOperator GetOperatorFromChar(char o);
+
+	ArithmeticOperator GetOperatorFromChar(char o);
 
 public:
 	MainWindow();
