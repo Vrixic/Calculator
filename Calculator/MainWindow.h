@@ -26,6 +26,8 @@ private:
 	float mXOffset = 5.0f;
 	float mYOffset = 1.0f;
 
+	float mBtnTopPadding = 100.f;
+
 	float mBtnWidth = 90;
 	float mBtnHeight = 65;
 

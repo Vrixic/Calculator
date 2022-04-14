@@ -11,15 +11,13 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Vrij",
 	this->SetBackgroundColour(wxColor(bgc, bgc, bgc));
 	mMainFont = new wxFont(34, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false);
 
-	mLabel = new wxTextCtrl(this, wxID_ANY, "0", wxPoint(0, 450), wxSize(mLabelWidth, mLabelHeight), wxALIGN_RIGHT | wxBORDER_NONE);
+	mLabel = new wxTextCtrl(this, wxID_ANY, "0", wxPoint(0, 50), wxSize(mLabelWidth, mLabelHeight), wxALIGN_RIGHT | wxBORDER_NONE);
 	mLabel->SetFont(*mMainFont);
 	mLabel->SetForegroundColour(wxColor(10, 10, 10));
 
-	mPrevLabel = new wxStaticText(this, wxID_ANY, "", wxPoint(0, 400), wxSize(mLabelWidth, mLabelHeight), wxALIGN_RIGHT);
+	mPrevLabel = new wxStaticText(this, wxID_ANY, "", wxPoint(0, 0), wxSize(mLabelWidth, mLabelHeight), wxALIGN_RIGHT | wxBORDER_NONE);
 	mPrevLabel->SetFont(*mMainFont);
-	mPrevLabel->SetForegroundColour(wxColor(bgc, bgc, bgc));
-
-	//std::to_string()
+	mPrevLabel->SetForegroundColour(wxColor(10, 10, 10));
 
 	int bgcs = 255;
 	mLabel->SetBackgroundColour(wxColor(bgc, bgc, bgc));
@@ -40,7 +38,7 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Vrij",
 		{
 			btnArrNum = y * M_FIELD_WIDTH + x;
 
-			mButtons[btnArrNum] = new wxButton(this, buttonIdCount, btnLabelCodes[buttonIdCount], wxPoint(x * mBtnWidth + ((x + 1) * mXOffset), y * mBtnHeight + ((y + 1) * mYOffset)), wxSize(mBtnWidth, mBtnHeight));
+			mButtons[btnArrNum] = new wxButton(this, buttonIdCount, btnLabelCodes[buttonIdCount], wxPoint(x * mBtnWidth + ((x + 1) * mXOffset), (y * mBtnHeight + ((y + 1) * mYOffset)) + mBtnTopPadding), wxSize(mBtnWidth, mBtnHeight));
 			mButtons[btnArrNum]->SetBackgroundColour(wxColor(bnc, bnc, bnc));
 			mButtons[btnArrNum]->SetForegroundColour(wxColor(10,10,10));
 			mButtons[btnArrNum]->SetFont(*mMainFont);
@@ -50,7 +48,7 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Vrij",
 		}
 	}
 
-	mClearBtn = new wxButton(this, 20, "Clear", wxPoint(0 + mXOffset, 331 + mYOffset), wxSize(375, 60), wxBORDER_DOUBLE);
+	mClearBtn = new wxButton(this, 20, "Clear", wxPoint(0 + mXOffset, 435 + mYOffset), wxSize(375, 60), wxBORDER_DOUBLE);
 	mClearBtn->SetBackgroundColour(wxColor(bnc, bnc, bnc));
 	mClearBtn->SetForegroundColour(wxColor(10,10,10));
 	mClearBtn->SetFont(*mMainFont);
@@ -157,6 +155,8 @@ void MainWindow::OnReSize(wxSizeEvent& event)
 	wxSize btnSize(mBtnWidth * widthScaler, mBtnHeight * heightScaler);
 	wxButton* btn;
 
+	mBtnTopPadding *= heightScaler;
+
 	for (unsigned int x = 0; x < M_FIELD_WIDTH; x++)
 	{
 		for (unsigned int y = 0; y < M_FIELD_HEIGHT; y++)
@@ -166,7 +166,7 @@ void MainWindow::OnReSize(wxSizeEvent& event)
 			btnPos = btn->GetPosition();
 
 			btnPos.x = ((x * (mBtnWidth * widthScaler)) + ((x + 1) * mXOffset));
-			btnPos.y = ((y * (mBtnHeight * heightScaler)) + ((y + 1) * mYOffset));
+			btnPos.y = ((y * (mBtnHeight * heightScaler)) + ((y + 1) * mYOffset)) + mBtnTopPadding;
 
 			btn->SetPosition(btnPos);
 			btn->SetSize(btnSize);
@@ -192,7 +192,7 @@ void MainWindow::OnReSize(wxSizeEvent& event)
 	mLabelWidth *= widthScaler;
 	mLabelHeight *= heightScaler;
 
-	mFontSize *= heightScaler;
+	mFontSize = mFontSize * heightScaler - mFontSize;
 
 	wxPoint labelPos = mLabel->GetPosition();
 
@@ -201,10 +201,11 @@ void MainWindow::OnReSize(wxSizeEvent& event)
 
 	mLabel->SetPosition(labelPos);
 	mLabel->SetSize(wxSize(mLabelWidth, mLabelHeight));
+	mPrevLabel->SetSize(wxSize(mLabelWidth, mLabelHeight));
 
 	mMainFont->SetPointSize(mFontSize);
-
 	mLabel->SetFont(*mMainFont);
+	mPrevLabel->SetFont(*mMainFont);
 
 	event.Skip();
 }
@@ -227,7 +228,7 @@ void MainWindow::ProcessOperators(unsigned int id)
 		{
 			mLabel->AppendText("=");
 			mCurrentString.Append("=");
-			//ProcessOperation();
+			ProcessOperation();
 		}
 		break;
 	case 16: // Add
@@ -369,7 +370,7 @@ void MainWindow::ProcessOperation()
 			num *= mNums[i];
 			break;
 		case ArithmeticOperator::Divide:
-			if ((int)num % (int)mNums[i] != 0)
+			if (num != 0 && (int)num % (int)mNums[i] != 0)
 				bHasDecimal = true;
 
 			if (mNums[i] != 0)
@@ -386,13 +387,19 @@ void MainWindow::ProcessOperation()
 	mPrevLabel->SetLabelText(mCurrentString);
 	if (!bNanError)
 		if (bHasDecimal)
+		{
 			mLabel->SetLabelText(std::to_string(num));
+			mCurrentString = "" + std::to_string(num);
+		}			
 		else
+		{
+			mCurrentString = "" + std::to_string((int)num);
 			mLabel->SetLabelText(std::to_string((int)num));
+		}
 	else
 		mLabel->SetLabelText("Overflow Error");
 
-	mCurrentString = "" + std::to_string(num);
+	
 }
 
 ArithmeticOperator MainWindow::GetOperatorFromChar(char o)
