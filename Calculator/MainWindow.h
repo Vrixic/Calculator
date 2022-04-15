@@ -45,14 +45,14 @@ private:
 
 	wxButton* mClearBtn = nullptr;
 
-	const char* btnLabelCodes = "D147~0258BH369%=+-*/";
+	const char* mBtnLabelCodes = "D147~0258BH369%=+-*/";
 
 	bool bStartUpReSize = true;
 
-	wxString mCurrentString;
+	wxString mCurrentString = "0";
 
 	std::vector<ArithmeticOperator> mOperators; // all user entered operators
-	std::vector<double> mNums; // all user entered nums
+	std::vector<float> mNums; // all user entered nums
 
 	bool bFirstClick = true;
 
@@ -70,6 +70,14 @@ private:
 	void ProcessNumbers(unsigned int id);
 
 	ArithmeticOperator GetOperatorFromChar(char o);
+
+	void SetMainLabelText(const std::string& str);
+
+	void SetMainLabelText(const char& c);
+
+	void AppendToMainLabelText(const std::string& str);
+
+	void AppendToMainLabelText(const char& c);
 
 public:
 	MainWindow();

@@ -1,33 +1,37 @@
 #include "MainWindow.h"
 
+#include <sstream>
+#include <bitset>
+
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
 wxEND_EVENT_TABLE()
 
 MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Vrij",
 	wxPoint(420, 180), wxSize(400, 540))
 {
-	this->SetTransparent(240);
-	int bgc = 255;
-	this->SetBackgroundColour(wxColor(bgc, bgc, bgc));
+	// Colors
+	wxColor btnFgColor(200, 200, 200); // button foreground color
+	wxColor btnBgColor(10, 10, 10); // button background color
+	wxColor winBgColor(0, 0, 0); // window background color
+
+	this->SetTransparent(225);
+	this->SetBackgroundColour(winBgColor);
 	mMainFont = new wxFont(34, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false);
 
 	mLabel = new wxTextCtrl(this, wxID_ANY, "0", wxPoint(0, 50), wxSize(mLabelWidth, mLabelHeight), wxALIGN_RIGHT | wxBORDER_NONE);
 	mLabel->SetFont(*mMainFont);
-	mLabel->SetForegroundColour(wxColor(10, 10, 10));
+	mLabel->SetForegroundColour(btnFgColor);
 
 	mPrevLabel = new wxStaticText(this, wxID_ANY, "", wxPoint(0, 0), wxSize(mLabelWidth, mLabelHeight), wxALIGN_RIGHT | wxBORDER_NONE);
 	mPrevLabel->SetFont(*mMainFont);
-	mPrevLabel->SetForegroundColour(wxColor(10, 10, 10));
+	mPrevLabel->SetForegroundColour(btnFgColor);
 
-	int bgcs = 255;
-	mLabel->SetBackgroundColour(wxColor(bgc, bgc, bgc));
-	mPrevLabel->SetBackgroundColour(wxColor(bgc, bgc, bgc));
+	mLabel->SetBackgroundColour(winBgColor);
+	mPrevLabel->SetBackgroundColour(winBgColor);
 
 	mButtons = new wxButton * [M_FIELD_WIDTH * M_FIELD_HEIGHT];
 
 	mMainFont->SetPointSize(24);
-
-	int bnc = 250;
 
 	int buttonIdCount = 0;
 	int btnArrNum = 0;
@@ -38,9 +42,12 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Vrij",
 		{
 			btnArrNum = y * M_FIELD_WIDTH + x;
 
-			mButtons[btnArrNum] = new wxButton(this, buttonIdCount, btnLabelCodes[buttonIdCount], wxPoint(x * mBtnWidth + ((x + 1) * mXOffset), (y * mBtnHeight + ((y + 1) * mYOffset)) + mBtnTopPadding), wxSize(mBtnWidth, mBtnHeight));
-			mButtons[btnArrNum]->SetBackgroundColour(wxColor(bnc, bnc, bnc));
-			mButtons[btnArrNum]->SetForegroundColour(wxColor(10,10,10));
+			mButtons[btnArrNum] = new wxButton(this, buttonIdCount, mBtnLabelCodes[buttonIdCount], wxPoint(x * mBtnWidth + ((x + 1) * mXOffset), (y * mBtnHeight + ((y + 1) * mYOffset)) + mBtnTopPadding), wxSize(mBtnWidth, mBtnHeight));
+			if(y == 0 || x == M_FIELD_WIDTH - 1)
+				mButtons[btnArrNum]->SetBackgroundColour(btnBgColor);
+			else
+				mButtons[btnArrNum]->SetBackgroundColour(wxColor(btnBgColor.GetRed() + 25, btnBgColor.GetGreen() + 25, btnBgColor.GetBlue() + 25));
+			mButtons[btnArrNum]->SetForegroundColour(btnFgColor);
 			mButtons[btnArrNum]->SetFont(*mMainFont);
 			mButtons[btnArrNum]->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MainWindow::OnButtonClicked, this);
 
@@ -49,8 +56,8 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Vrij",
 	}
 
 	mClearBtn = new wxButton(this, 20, "Clear", wxPoint(0 + mXOffset, 435 + mYOffset), wxSize(375, 60), wxBORDER_DOUBLE);
-	mClearBtn->SetBackgroundColour(wxColor(bnc, bnc, bnc));
-	mClearBtn->SetForegroundColour(wxColor(10,10,10));
+	mClearBtn->SetBackgroundColour(btnBgColor);
+	mClearBtn->SetForegroundColour(btnFgColor);
 	mClearBtn->SetFont(*mMainFont);
 	mClearBtn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MainWindow::OnButtonClicked, this);
 
@@ -71,60 +78,76 @@ void MainWindow::OnButtonClicked(wxCommandEvent& event)
 {
 	unsigned int id = event.GetId();
 
-	if (mLabel->GetLabelText() == '0' && id == 0)
+	if (mLabel->GetLabelText()[0] == '0' && id == 0)
 		return;
 
 	if (id == 20) // Clear
-	{
-		mLabel->SetLabelText("0");
+	{		
 		mPrevLabel->SetLabelText("");
-		mCurrentString = "";
+		SetMainLabelText("0");
 		bFirstClick = true;
-	}
-	else if (mLabel->GetLabelText() == "0" && bFirstClick)
-	{
-		mLabel->SetLabelText(btnLabelCodes[id]);
-		ProcessNumbers(id);
-		bFirstClick = false;
-	}
+	}	
 	else if (id == 0)// decimal
 	{
-		mLabel->AppendText(".");
-		mCurrentString.Append(".");
+		AppendToMainLabelText(".");
 	}
 	else if (id == 4)// Negate
 	{
-		if (mLabel->GetLabelText()[0] != '-')
+		if (mCurrentString[0] == '0' && mCurrentString.length() == 1)
 		{
-			wxString temp = "-";
-			temp.Append(mCurrentString);
-			mCurrentString = temp;
-			mLabel->SetLabelText(mCurrentString);
+			SetMainLabelText("-");
 		}
-		else
+		else if (mLabel->GetLabelText()[0] != '-')
+		{
+			std::string temp("-");
+			temp.append(mCurrentString);
+
+			SetMainLabelText(temp);
+		}
+		else if(mCurrentString.length() > 1)
 		{
 			mCurrentString = mCurrentString.substr(1, mCurrentString.length());
 			mLabel->SetLabelText(mCurrentString);
 		}
+		else
+		{
+			SetMainLabelText("0");
+		}		
 	}
 	else if (id == 9)// Binary
 	{
+		int num = wxAtoi(mCurrentString);
 
+		std::bitset<16> x(num);
+		mLabel->SetLabelText(x.to_string());
 	}
 	else if (id == 10)// Hex
 	{
+		std::stringstream ss;
+		int num = wxAtoi(mCurrentString);
 
+		ss << "0x" << std::hex << num;
+		mLabel->SetLabelText(ss.str());
+	}
+	else if (mLabel->GetLabelText()[0] == '0' && (mCurrentString.length() == 1 || mCurrentString.length() > 1))
+	{
+		SetMainLabelText(mBtnLabelCodes[id]);
+		bFirstClick = false;
 	}
 	else if (id < 14)
 	{
-		mLabel->AppendText(btnLabelCodes[id]);
+		if (mLabel->GetLabelText()[0] == '0' && mLabel->GetLabelText().length() < 1)
+		{
+			SetMainLabelText("");
+		}
+		
 		ProcessNumbers(id);
 	}
 	else if (id > 13) // basic operations on numbers  
 	{
 		ProcessOperators(id);
 	}
-
+	
 	event.Skip();
 }
 
@@ -212,95 +235,21 @@ void MainWindow::OnReSize(wxSizeEvent& event)
 
 void MainWindow::ProcessOperators(unsigned int id)
 {
+	char op = mBtnLabelCodes[id];
 
-	switch (id)
+	mLabel->AppendText(op);
+	mCurrentString.Append(op);
+
+	if (op == '=')
 	{
-	case 14: // Mod
-		if (mLabel->GetLabelText().Last() != '%')
-		{
-			mLabel->AppendText("%");
-			mCurrentString.Append("%");
-		}
-
-		break;
-	case 15: // Equals
-		if (mLabel->GetLabelText().Last() != '=')
-		{
-			mLabel->AppendText("=");
-			mCurrentString.Append("=");
-			ProcessOperation();
-		}
-		break;
-	case 16: // Add
-		if (mLabel->GetLabelText().Last() != '+')
-		{
-			mLabel->AppendText("+");
-			mCurrentString.Append("+");
-		}
-		break;
-	case 17: // Minus
-		if (mLabel->GetLabelText().Last() != '-')
-		{
-			mLabel->AppendText("-");
-			mCurrentString.Append("-");
-		}
-		break;
-	case 18: // Multiply
-		if (mLabel->GetLabelText().Last() != '*')
-		{
-			mLabel->AppendText("*");
-			mCurrentString.Append("*");
-		}
-		break;
-	case 19: // Divide
-		if (mLabel->GetLabelText().Last() != '/')
-		{
-			mLabel->AppendText("/");
-			mCurrentString.Append("/");
-		}
-		break;
-	default:
-		break;
+		ProcessOperation();
 	}
 }
 
 void MainWindow::ProcessNumbers(unsigned int id)
 {
-	switch (id)
-	{
-	case 1:
-		mCurrentString.Append('1');
-		break;
-	case 2:
-		mCurrentString.Append('4');
-		break;
-	case 3:
-		mCurrentString.Append('7');
-		break;
-	case 5:
-		mCurrentString.Append('0');
-		break;
-	case 6:
-		mCurrentString.Append('2');
-		break;
-	case 7:
-		mCurrentString.Append('5');
-		break;
-	case 8:
-		mCurrentString.Append('8');
-		break;
-	case 11:
-		mCurrentString.Append('3');
-		break;
-	case 12:
-		mCurrentString.Append('6');
-		break;
-	case 13:
-		mCurrentString.Append('9');
-		break;
-	default:
-		break;
-	}
+	mLabel->AppendText(mBtnLabelCodes[id]);
+	mCurrentString.Append(mBtnLabelCodes[id]);
 }
 
 void MainWindow::ProcessOperation()
@@ -311,7 +260,7 @@ void MainWindow::ProcessOperation()
 	mOperators.clear();
 	mNums.clear();
 
-	double num = -1;
+	float num = -1;
 
 	if (temp.GetChar(0) != '-')
 	{
@@ -339,7 +288,7 @@ void MainWindow::ProcessOperation()
 			mOperators.push_back(GetOperatorFromChar(temp.GetChar(i)));
 
 			numStr = temp.substr(0, i);
-			numStr.ToDouble(&num);
+			num = wxAtof(numStr);//.ToDouble(&num);
 
 			mNums.push_back(num);
 
@@ -349,7 +298,7 @@ void MainWindow::ProcessOperation()
 		}
 	}
 
-	num = 0;
+	num = 0.f;
 
 	bool bNanError = false;
 
@@ -370,15 +319,13 @@ void MainWindow::ProcessOperation()
 			num *= mNums[i];
 			break;
 		case ArithmeticOperator::Divide:
-			if (num != 0 && (int)num % (int)mNums[i] != 0)
+			if (num != 0 && mNums[i] != 0  && (int)num % (int)mNums[i] != 0)
 				bHasDecimal = true;
 
 			if (mNums[i] != 0)
 				num /= mNums[i];
 			else
 				bNanError = true;
-			break;
-		default:
 			break;
 		}
 	}
@@ -397,9 +344,7 @@ void MainWindow::ProcessOperation()
 			mLabel->SetLabelText(std::to_string((int)num));
 		}
 	else
-		mLabel->SetLabelText("Overflow Error");
-
-	
+		mLabel->SetLabelText("Overflow Error");	
 }
 
 ArithmeticOperator MainWindow::GetOperatorFromChar(char o)
@@ -418,4 +363,28 @@ ArithmeticOperator MainWindow::GetOperatorFromChar(char o)
 		return ArithmeticOperator::Equals;
 	else
 		return ArithmeticOperator::None;
+}
+
+void MainWindow::SetMainLabelText(const std::string& str)
+{
+	mLabel->SetLabelText(str);
+	mCurrentString = str;
+}
+
+void MainWindow::SetMainLabelText(const char& c)
+{
+	mLabel->SetLabelText(c);
+	mCurrentString = c;
+}
+
+void MainWindow::AppendToMainLabelText(const std::string& str)
+{
+	mLabel->AppendText(str);
+	mCurrentString.Append(str);
+}
+
+void MainWindow::AppendToMainLabelText(const char& c)
+{
+	mLabel->AppendText(c);
+	mCurrentString.Append(c);
 }
