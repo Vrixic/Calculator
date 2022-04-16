@@ -1,15 +1,45 @@
 #pragma once
 
-#include "wx/wx.h"
+#include "ButtonFactory.h"
+#include <list>
+
+enum class ButtonID
+{
+	None = -1,
+	Zero,
+	One,
+	Two,
+	Three,
+	Four,
+	Five,
+	Six,
+	Seven,
+	Eight,
+	Nine,
+	
+	Add,
+	Minus,
+	Multiply,
+	Divide,
+	Mod,
+	Equals,
+
+	Negate,
+	Decimal,
+	Binary,
+	Hex,
+
+	Clear
+};
 
 enum class ArithmeticOperator
 {
 	None = -1,
-	Add,
+	Add = 10,
 	Minus,
-	Mod,
 	Multiply,
 	Divide,
+	Mod,		
 	Equals
 };
 
@@ -45,16 +75,36 @@ private:
 
 	wxButton* mClearBtn = nullptr;
 
-	const char* mBtnLabelCodes = "D147~0258BH369%=+-*/";
+	//const char* mBtnLabelCodes = "D147~0258BH369%=+-*/";
+	const char* mBtnLabelCodes = "0123456789+-*/%=~.BH";
 
 	bool bStartUpReSize = true;
 
-	wxString mCurrentString = "0";
+	wxString mLabelString = "0"; // string visble to user
+	wxString mNumberString = "";
 
-	std::vector<ArithmeticOperator> mOperators; // all user entered operators
+	//std::vector<ArithmeticOperator> mOperators; // all user entered operators
 	std::vector<float> mNums; // all user entered nums
 
-	bool bFirstClick = true;
+	std::list<float> mNumbers; // list of floats 
+	std::list<ArithmeticOperator> mOperators;
+
+	unsigned int mLastOperatorIndex = 0;
+
+	// all buttons
+	ButtonFactory mButtonFactory;
+	wxButton* mAddButton;
+	wxButton* mMinusButton;
+	wxButton* mModButton;
+	wxButton* mMultiplyButton;
+	wxButton* mDivideButton;
+	wxButton* mNegateButton;
+	wxButton* mDecimalButton;
+	wxButton* mBinaryButton;
+	wxButton* mHexButton;
+	wxButton* mEqualsButton;
+	wxButton* mClearButton;
+	wxButton** mNumberButtons;
 
 private:
 	void OnButtonClicked(wxCommandEvent& event);
@@ -63,21 +113,9 @@ private:
 
 	//void OnKeyDown(wxKeyEvent& event);
 
-	void ProcessOperators(unsigned int id);
-
 	void ProcessOperation();
 
 	void ProcessNumbers(unsigned int id);
-
-	ArithmeticOperator GetOperatorFromChar(char o);
-
-	void SetMainLabelText(const std::string& str);
-
-	void SetMainLabelText(const char& c);
-
-	void AppendToMainLabelText(const std::string& str);
-
-	void AppendToMainLabelText(const char& c);
 
 public:
 	MainWindow();
