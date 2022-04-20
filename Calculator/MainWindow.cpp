@@ -1,8 +1,5 @@
 #include "MainWindow.h"
 
-#include <sstream>
-#include <bitset>
-
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
 wxEND_EVENT_TABLE()
 
@@ -123,19 +120,7 @@ void MainWindow::OnButtonClicked(wxCommandEvent& event)
 	}
 	else if (id < 16) // an arithemetic operator
 	{
-		float num = wxAtof(mNumberString);
-		mNumbers.push_back(num);
-
-		mOperators.push_back((ArithmeticOperator)id);
-		mNumberString.clear();
-
-		mLabelString.Append(mBtnLabelCodes[id]);
-		mLastOperatorIndex = mLabelString.length() - 1;
-
-		if (id == 15) // equals
-		{
-			ProcessOperation();
-		}
+		ProcessArithmeticOperators(id);
 	}
 	else if (id == 16) // negate operator
 	{
@@ -179,22 +164,33 @@ void MainWindow::OnButtonClicked(wxCommandEvent& event)
 
 	if (id == 18) // binary
 	{
-		int num = wxAtoi(mNumberString);
-
-		std::bitset<14> x(num);
-		mLabel->SetLabelText(x.to_string());
+		ProcessArithmeticOperators((unsigned int)ArithmeticOperator::Equals);
+		mLabel->SetLabelText(calcProcessor->Binary(mNumberString.ToStdString()));
 	}
 	else if (id == 19) // hex
 	{
-		std::stringstream ss;
-		int num = wxAtoi(mNumberString);
-
-		ss << "0x" << std::hex << num;
-		mLabel->SetLabelText(ss.str());
+		ProcessArithmeticOperators((unsigned int)ArithmeticOperator::Equals);
+		mLabel->SetLabelText(calcProcessor->Hex(mNumberString.ToStdString()));
 	}
 	else
 		mLabel->SetLabelText(mLabelString);
 	event.Skip();
+}
+
+void MainWindow::ProcessArithmeticOperators(unsigned int id)
+{
+	float num = wxAtof(mNumberString);
+	mNumbers.push_back(num);
+
+	mOperators.push_back((ArithmeticOperator)id);
+	mNumberString.clear();
+
+	mLabelString.Append(mBtnLabelCodes[id]);
+
+	if (id == 15) // equals
+	{
+		ProcessOperation();
+	}
 }
 
 //void MainWindow::OnReSize(wxSizeEvent& event)
@@ -336,13 +332,13 @@ void MainWindow::ProcessOperation()
 			switch (ao)
 			{
 			case ArithmeticOperator::Multiply:
-				currentNum *= *fIt;
+				currentNum =  calcProcessor->Multiply(currentNum, *fIt);
 				break;
 			case ArithmeticOperator::Divide:
-				currentNum /= *fIt;
+				currentNum = calcProcessor->Divide(currentNum, *fIt);
 				break;
 			case ArithmeticOperator::Mod:
-				currentNum = (int)currentNum % (int)*fIt;
+				currentNum = calcProcessor->Mod((int)currentNum, (int)*fIt);
 				break;
 			}
 
@@ -376,19 +372,19 @@ void MainWindow::ProcessOperation()
 			switch (*opIt)
 			{
 			case ArithmeticOperator::Add:
-				num += *fIt;
+				num = calcProcessor->Add(num, *fIt);
 				break;
 			case ArithmeticOperator::Minus:
-				num -= *fIt;
+				num = calcProcessor->Subtract(num, *fIt);
 				break;
 			case ArithmeticOperator::Multiply:
-				num *= *fIt;
+				num = calcProcessor->Multiply(num, *fIt);
 				break;
 			case ArithmeticOperator::Divide:
-				num /= *fIt;
+				num = calcProcessor->Divide(num, *fIt);
 				break;
 			case ArithmeticOperator::Mod:
-				num = (int)num % (int)*fIt;
+				num = calcProcessor->Mod((int)num, (int)*fIt);
 				break;
 			case ArithmeticOperator::Equals:
 				mOperators.clear();
@@ -402,7 +398,7 @@ void MainWindow::ProcessOperation()
 			mNumbers.pop_front();
 			fIt = mNumbers.begin();
 		}
-	}	
+	}
 
 	mOperators.clear();
 	mNumbers.clear();

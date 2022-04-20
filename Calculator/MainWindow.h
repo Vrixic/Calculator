@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ButtonFactory.h"
+#include "CalculatorProcessor.h"
 #include <list>
 
 enum class ButtonID
@@ -75,7 +76,6 @@ private:
 
 	wxButton* mClearBtn = nullptr;
 
-	//const char* mBtnLabelCodes = "D147~0258BH369%=+-*/";
 	const char* mBtnLabelCodes = "0123456789+-*/%=~.BH";
 
 	bool bStartUpReSize = true;
@@ -83,13 +83,10 @@ private:
 	wxString mLabelString = "0"; // string visble to user
 	wxString mNumberString = "";
 
-	//std::vector<ArithmeticOperator> mOperators; // all user entered operators
 	std::vector<float> mNums; // all user entered nums
 
 	std::list<float> mNumbers; // list of floats 
 	std::list<ArithmeticOperator> mOperators;
-
-	unsigned int mLastOperatorIndex = 0;
 
 	// all buttons
 	ButtonFactory mButtonFactory;
@@ -106,8 +103,13 @@ private:
 	wxButton* mClearButton;
 	wxButton** mNumberButtons;
 
+	// Processor
+	CalculatorProcessor* calcProcessor = &CalculatorProcessor::getInstance();
+
 private:
 	void OnButtonClicked(wxCommandEvent& event);
+
+	void ProcessArithmeticOperators(unsigned int id);
 
 	void OnReSize(wxSizeEvent& event);
 
