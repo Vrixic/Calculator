@@ -3,6 +3,52 @@
 #include <sstream>
 #include <bitset>
 
+CalculatorProcessor::~CalculatorProcessor()
+{
+	delete mLastCommand;
+	mCommandsList.clear();
+}
+
+void CalculatorProcessor::AddCommand(IBaseCommand* command, float rightNum)
+{
+	if (mLastCommand != nullptr)
+		mLastCommand->mRightNumber = rightNum;
+
+	mCommandsList.push_back(command);
+	mLastCommand = command;
+}
+
+float CalculatorProcessor::ExecuteCommands()
+{
+	float num = 0;
+
+	for (std::list<IBaseCommand*>::iterator it = mCommandsList.begin(); it != mCommandsList.end();)
+	{
+		(*it)->Execute();
+		num = (*it)->mLeftNumber;
+		it++;
+
+		if ((*it)->mOperator == ArithmeticOperator::Equals)
+		{
+			ClearCommandsList();
+			return num;
+		}
+
+		/*if (it != mCommandsList.end())*/
+		(*it)->mLeftNumber = num;
+	}
+
+	ClearCommandsList();
+
+	return num;
+}
+
+void CalculatorProcessor::ClearCommandsList()
+{
+	mCommandsList.clear();
+	mLastCommand = nullptr;
+}
+
 float CalculatorProcessor::Add(float num1, float num2)
 {
 	return num1 + num2;

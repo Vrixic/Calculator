@@ -6,6 +6,10 @@ wxEND_EVENT_TABLE()
 MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Vrij",
 	wxPoint(420, 180), wxSize(400, 540), wxDEFAULT_FRAME_STYLE & ~wxRESIZE_BORDER & ~wxMAXIMIZE_BOX)
 {
+
+	/*_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetBreakAlloc(22632);*/
+
 	// Colors
 	wxColor btnFgColor(200, 200, 200); // button foreground color
 	wxColor btnBgColor(10, 10, 10); // button background color
@@ -27,7 +31,6 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Vrij",
 	mLabel->SetBackgroundColour(winBgColor);
 	mPrevLabel->SetBackgroundColour(winBgColor);
 
-	mButtons = new wxButton * [M_FIELD_WIDTH * M_FIELD_HEIGHT];
 	mNumberButtons = new wxButton * [10];
 
 	mMainFont->SetPointSize(24);
@@ -101,10 +104,20 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Vrij",
 
 MainWindow::~MainWindow()
 {
-	delete[] mButtons;
+	delete mAddButton;
+	delete mMinusButton;
+	delete mModButton;
+	delete mMultiplyButton;
+	delete mDivideButton;
+	delete mNegateButton;
+	delete mDecimalButton;
+	delete mBinaryButton;
+	delete mHexButton;
+	delete mEqualsButton;	
+	delete mClearBtn;
+
 	delete mLabel;
 	delete mMainFont;
-	delete mClearBtn;
 	delete mPrevLabel;
 
 	delete[] mNumberButtons;
@@ -183,13 +196,45 @@ void MainWindow::ProcessArithmeticOperators(unsigned int id)
 	mNumbers.push_back(num);
 
 	mOperators.push_back((ArithmeticOperator)id);
+	switch ((ArithmeticOperator)id)
+	{
+	case ArithmeticOperator::Add:
+		calcProcessor->AddCommand(new AddCommand(num), num);
+		break;
+	case ArithmeticOperator::Minus:
+		calcProcessor->AddCommand(new SubtractCommand(num), num);
+		break;
+	case ArithmeticOperator::Multiply:
+		calcProcessor->AddCommand(new MultiplyCommand(num), num);
+		break;
+	case ArithmeticOperator::Divide:
+		calcProcessor->AddCommand(new DivideCommand(num), num);
+		break;
+	case ArithmeticOperator::Mod:
+		calcProcessor->AddCommand(new ModCommand(num), num);
+		break;
+	case ArithmeticOperator::Equals:
+		calcProcessor->AddCommand(new EqualsCommand(), num);
+		break;
+	}
 	mNumberString.clear();
 
 	mLabelString.Append(mBtnLabelCodes[id]);
 
 	if (id == 15) // equals
 	{
-		ProcessOperation();
+		//ProcessOperation();
+		//mLabel->SetLabelText(mLabelString));
+		if ((int)num == num)
+		{
+			mLabelString = std::to_string((int)calcProcessor->ExecuteCommands());
+			mNumberString = mLabelString;
+		}
+		else
+		{
+			mLabelString = std::to_string(calcProcessor->ExecuteCommands());
+			mNumberString = mLabelString;
+		}	
 	}
 }
 
@@ -332,7 +377,7 @@ void MainWindow::ProcessOperation()
 			switch (ao)
 			{
 			case ArithmeticOperator::Multiply:
-				currentNum =  calcProcessor->Multiply(currentNum, *fIt);
+				currentNum = calcProcessor->Multiply(currentNum, *fIt);
 				break;
 			case ArithmeticOperator::Divide:
 				currentNum = calcProcessor->Divide(currentNum, *fIt);

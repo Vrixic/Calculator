@@ -33,16 +33,6 @@ enum class ButtonID
 	Clear
 };
 
-enum class ArithmeticOperator
-{
-	None = -1,
-	Add = 10,
-	Minus,
-	Multiply,
-	Divide,
-	Mod,		
-	Equals
-};
 
 class MainWindow : public wxFrame
 {
@@ -68,13 +58,8 @@ private:
 	float mFontSize = 68.0f;
 
 	wxFont* mMainFont;
-
-	wxButton** mButtons = nullptr;
-
 	wxStaticText* mPrevLabel = nullptr;
-	wxTextCtrl* mLabel = nullptr;
-
-	wxButton* mClearBtn = nullptr;
+	wxTextCtrl* mLabel = nullptr;	
 
 	const char* mBtnLabelCodes = "0123456789+-*/%=~.BH";
 
@@ -100,7 +85,8 @@ private:
 	wxButton* mBinaryButton;
 	wxButton* mHexButton;
 	wxButton* mEqualsButton;
-	wxButton* mClearButton;
+	wxButton* mClearBtn = nullptr;
+	//wxButton* mClearButton;
 	wxButton** mNumberButtons;
 
 	// Processor
