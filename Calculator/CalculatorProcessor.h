@@ -9,6 +9,8 @@ class CalculatorProcessor
 private:
 	std::list<IBaseCommand*> mCommandsList;
 	IBaseCommand* mLastCommand = nullptr;
+
+	bool bCommandError = false;
 private:
 	CalculatorProcessor() { }
 
@@ -42,6 +44,22 @@ public:
 	std::string Binary(const std::string& numStr);
 
 	std::string Hex(const std::string& numStr);
+
+	inline void ResetCommandError() { bCommandError = false; }
+
+	inline bool GetCommandError() { return bCommandError; }
+
+
+	/* Made for testing purposes... */
+	inline IBaseCommand* GetLastCommand()
+	{
+		return *mCommandsList.end();
+	}
+
+	inline int GetCommandListSize()
+	{
+		return mCommandsList.size();
+	}
 
 };
 

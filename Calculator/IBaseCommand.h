@@ -5,12 +5,23 @@
 class IBaseCommand
 {
 public:
+	/*
+	* mLeftNumber: the left operand in a equation
+	* mRightNumber: the right operand in a equation
+	*/
 	float mLeftNumber;
 	float mRightNumber;
 
+	/*
+	* If the commands runs into an error than bError will be flagged
+	*/
+	bool bError;
+
+	// Current operator for the command
 	ArithmeticOperator mOperator;
 
 public:
+	// Executes the current command, implemented in child classes
 	virtual void Execute() = 0;
 };
 
@@ -22,6 +33,7 @@ public:
 	{
 		mLeftNumber = leftNum;
 		mRightNumber = 0.f;
+		bError = false;
 
 		mOperator = ArithmeticOperator::Add;
 	}
@@ -40,6 +52,7 @@ public:
 	{
 		mLeftNumber = leftNum;
 		mRightNumber = 0.f;
+		bError = false;
 
 		mOperator = ArithmeticOperator::Minus;
 	}
@@ -59,6 +72,7 @@ public:
 	{
 		mLeftNumber = leftNum;
 		mRightNumber = 0.f;
+		bError = false;
 
 		mOperator = ArithmeticOperator::Multiply;
 	}
@@ -77,13 +91,17 @@ public:
 	{
 		mLeftNumber = leftNum;
 		mRightNumber = 0.f;
+		bError = false;
 
 		mOperator = ArithmeticOperator::Divide;
 	}
 
 	void Execute()
 	{
-		mLeftNumber /= mRightNumber;
+		if (mRightNumber == 0.f)
+			bError = true;
+		else
+			mLeftNumber /= mRightNumber;
 	}
 };
 
@@ -95,6 +113,7 @@ public:
 	{
 		mLeftNumber = leftNum;
 		mRightNumber = 0.f;
+		bError = false;
 
 		mOperator = ArithmeticOperator::Mod;
 	}

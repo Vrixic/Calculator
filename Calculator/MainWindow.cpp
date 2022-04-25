@@ -225,16 +225,29 @@ void MainWindow::ProcessArithmeticOperators(unsigned int id)
 	{
 		//ProcessOperation();
 		//mLabel->SetLabelText(mLabelString));
-		if ((int)num == num)
+
+		float number = calcProcessor->ExecuteCommands();
+
+		// ran into an error
+		if (calcProcessor->GetCommandError())
 		{
-			mLabelString = std::to_string((int)calcProcessor->ExecuteCommands());
-			mNumberString = mLabelString;
+			mLabelString = "error";
+			mNumberString = "";
+			calcProcessor->ResetCommandError();
 		}
 		else
 		{
-			mLabelString = std::to_string(calcProcessor->ExecuteCommands());
-			mNumberString = mLabelString;
-		}	
+			if ((int)num == num)
+			{
+				mLabelString = std::to_string((int)number);
+				mNumberString = mLabelString;
+			}
+			else
+			{
+				mLabelString = std::to_string(number);
+				mNumberString = mLabelString;
+			}
+		}
 	}
 }
 

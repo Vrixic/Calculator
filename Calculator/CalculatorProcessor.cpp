@@ -9,6 +9,11 @@ CalculatorProcessor::~CalculatorProcessor()
 	mCommandsList.clear();
 }
 
+/*
+* @Param: command - command that is being added to the list of commands
+* @Param: rightNum - if mLastCommand isn't null, then rightNum is the 
+		right number of the last command that was added to the list of commands
+*/
 void CalculatorProcessor::AddCommand(IBaseCommand* command, float rightNum)
 {
 	if (mLastCommand != nullptr)
@@ -18,29 +23,38 @@ void CalculatorProcessor::AddCommand(IBaseCommand* command, float rightNum)
 	mLastCommand = command;
 }
 
+/*
+* Executes all the commands in order in the list of commands 
+*/
+
 float CalculatorProcessor::ExecuteCommands()
 {
-	float num = 0;
+	float num = 0; // Temporary number used to keep in track of the final output number
 
 	for (std::list<IBaseCommand*>::iterator it = mCommandsList.begin(); it != mCommandsList.end();)
 	{
-		(*it)->Execute();
-		num = (*it)->mLeftNumber;
-		it++;
-
-		if ((*it)->mOperator == ArithmeticOperator::Equals)
+		(*it)->Execute(); // executes the current command
+		if ((*it)->bError)
 		{
-			ClearCommandsList();
-			return num;
+			bCommandError = true;
+			break;
+		}
+
+
+		num = (*it)->mLeftNumber; // sets the tempNum to the left number
+		it++; // goes to the next command
+
+		if ((*it)->mOperator == ArithmeticOperator::Equals) // Checks if the current commands operator is the Equals operator
+		{
+			break; // hit the end of the commands
 		}
 
 		/*if (it != mCommandsList.end())*/
-		(*it)->mLeftNumber = num;
+		(*it)->mLeftNumber = num; // sets the current commands left number to the last commands executed number
 	}
 
-	ClearCommandsList();
-
-	return num;
+	ClearCommandsList();// Clears the list of commands
+	return num;// returns the final number
 }
 
 void CalculatorProcessor::ClearCommandsList()
