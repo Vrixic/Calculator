@@ -3,12 +3,16 @@
 #include <string>
 #include "IBaseCommand.h"
 #include <list>
+#include <queue>
 
 class CalculatorProcessor
 {
 private:
+	std::queue<IBaseCommand*> mHighPrecedenceCommandsList;
+
 	std::list<IBaseCommand*> mCommandsList;
 	IBaseCommand* mLastCommand = nullptr;
+	IBaseCommand* mLastLowPrecedenceCommand = nullptr;
 
 	bool bCommandError = false;
 private:
@@ -24,7 +28,7 @@ public:
 	}
 
 public:
-	void AddCommand(IBaseCommand* command, float rightNum);
+	void AddCommand(IBaseCommand* command, float rightNum, bool hasHighPrecedence);
 
 	float ExecuteCommands();
 

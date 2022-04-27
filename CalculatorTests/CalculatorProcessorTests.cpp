@@ -2,32 +2,32 @@
 
 bool CalculatorProcessorTests::AddCommandTest(IBaseCommand* commandToAdd)
 {
-	calcProcessor->AddCommand(commandToAdd, 0);
+	calcProcessor->AddCommand(commandToAdd, 0, false);
 	return calcProcessor->GetLastCommand()->mOperator == commandToAdd->mOperator;
 }
 
 bool CalculatorProcessorTests::ExecuteCommandsTest1()
 {
-	calcProcessor->AddCommand(new AddCommand(5), 5);
-	calcProcessor->AddCommand(new SubtractCommand(5), 5);
-	calcProcessor->AddCommand(new MultiplyCommand(6), 6);
-	calcProcessor->AddCommand(new DivideCommand(8), 8);
-	calcProcessor->AddCommand(new ModCommand(4), 4);
-	calcProcessor->AddCommand(new EqualsCommand(), 3);
+	calcProcessor->AddCommand(new AddCommand(5), 5, false);
+	calcProcessor->AddCommand(new SubtractCommand(5), 5, false);
+	calcProcessor->AddCommand(new MultiplyCommand(6), 6, true);
+	calcProcessor->AddCommand(new DivideCommand(8), 8, true);
+	calcProcessor->AddCommand(new ModCommand(4), 4, true);
+	calcProcessor->AddCommand(new EqualsCommand(), 3, false);
 
 	return calcProcessor->ExecuteCommands() == 2;
 }
 
 bool CalculatorProcessorTests::ExecuteCommandsTest2()
 {
-	calcProcessor->AddCommand(new ModCommand(50), 50);
-	calcProcessor->AddCommand(new DivideCommand(4), 4);
-	calcProcessor->AddCommand(new SubtractCommand(2), 2);
-	calcProcessor->AddCommand(new MultiplyCommand(1), 1);
-	calcProcessor->AddCommand(new AddCommand(100), 100);
-	calcProcessor->AddCommand(new EqualsCommand(), 5);
+	calcProcessor->AddCommand(new ModCommand(50), 50, true);
+	calcProcessor->AddCommand(new DivideCommand(4), 4, true);
+	calcProcessor->AddCommand(new SubtractCommand(2), 2, false);
+	calcProcessor->AddCommand(new MultiplyCommand(1), 1, true);
+	calcProcessor->AddCommand(new AddCommand(100), 100, false);
+	calcProcessor->AddCommand(new EqualsCommand(), 5, false);
 
-	return calcProcessor->ExecuteCommands() == 5;
+	return calcProcessor->ExecuteCommands() == -94;
 }
 
 bool CalculatorProcessorTests::ClearCommandsListTest()

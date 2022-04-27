@@ -3,12 +3,14 @@
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
 wxEND_EVENT_TABLE()
 
+#define DEBUG_ALLOC_NUMBER -1
+
 MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Vrij",
 	wxPoint(420, 180), wxSize(400, 540), wxDEFAULT_FRAME_STYLE & ~wxRESIZE_BORDER & ~wxMAXIMIZE_BOX)
 {
 
-	/*_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	_CrtSetBreakAlloc(22632);*/
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetBreakAlloc(DEBUG_ALLOC_NUMBER);
 
 	// Colors
 	wxColor btnFgColor(200, 200, 200); // button foreground color
@@ -98,7 +100,6 @@ MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Vrij",
 	mClearBtn = mButtonFactory.CreateClearButton(this, (int)ButtonID::Clear, wxPoint(0 + mXOffset, 435 + mYOffset), wxSize(375, 60));
 	mClearBtn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MainWindow::OnButtonClicked, this);
 
-	//this->Bind(wxEVT_SIZE, &MainWindow::OnReSize, this);
 	//mLabel->Bind(wxEVT_KEY_DOWN, &MainWindow::OnKeyDown, this);
 }
 
@@ -113,7 +114,7 @@ MainWindow::~MainWindow()
 	delete mDecimalButton;
 	delete mBinaryButton;
 	delete mHexButton;
-	delete mEqualsButton;	
+	delete mEqualsButton;
 	delete mClearBtn;
 
 	delete mLabel;
@@ -145,7 +146,7 @@ void MainWindow::OnButtonClicked(wxCommandEvent& event)
 			wxString str = mNumberString(1, mNumberString.length());
 			mNumberString = str;
 
-			str = mLabelString.substr(mLabelString.length() - mNumberString.length(), mLabelString.length());
+			str = mLabelString.substr(0, mLabelString.length() - mNumberString.length() - 1) + mLabelString.substr(mLabelString.length() - mNumberString.length(), mLabelString.length());
 
 			mLabelString = str;
 		}
@@ -173,59 +174,60 @@ void MainWindow::OnButtonClicked(wxCommandEvent& event)
 		mLabelString = "0";
 		mNumberString = "";
 		mPrevLabel->SetLabelText("");
+		calcProcessor->ClearCommandsList();
 	}
 
 	if (id == 18) // binary
 	{
-		ProcessArithmeticOperators((unsigned int)ArithmeticOperator::Equals);
-		mLabel->SetLabelText(calcProcessor->Binary(mNumberString.ToStdString()));
+		wxString str = calcProcessor->Binary(mNumberString.ToStdString());
+		SetFontSize(GetFontSizeCalc(str));
+		mLabel->SetLabelText(str);
 	}
 	else if (id == 19) // hex
 	{
-		ProcessArithmeticOperators((unsigned int)ArithmeticOperator::Equals);
-		mLabel->SetLabelText(calcProcessor->Hex(mNumberString.ToStdString()));
+		wxString str = calcProcessor->Hex(mNumberString.ToStdString());
+		SetFontSize(GetFontSizeCalc(str));
+		mLabel->SetLabelText(str);
 	}
 	else
+	{
 		mLabel->SetLabelText(mLabelString);
+		SetFontSize(GetFontSizeCalc(mLabelString));
+	}
 	event.Skip();
 }
 
 void MainWindow::ProcessArithmeticOperators(unsigned int id)
 {
 	float num = wxAtof(mNumberString);
-	mNumbers.push_back(num);
 
-	mOperators.push_back((ArithmeticOperator)id);
 	switch ((ArithmeticOperator)id)
 	{
 	case ArithmeticOperator::Add:
-		calcProcessor->AddCommand(new AddCommand(num), num);
+		calcProcessor->AddCommand(new AddCommand(num), num, false);
 		break;
 	case ArithmeticOperator::Minus:
-		calcProcessor->AddCommand(new SubtractCommand(num), num);
+		calcProcessor->AddCommand(new SubtractCommand(num), num, false);
 		break;
 	case ArithmeticOperator::Multiply:
-		calcProcessor->AddCommand(new MultiplyCommand(num), num);
+		calcProcessor->AddCommand(new MultiplyCommand(num), num, true);
 		break;
 	case ArithmeticOperator::Divide:
-		calcProcessor->AddCommand(new DivideCommand(num), num);
+		calcProcessor->AddCommand(new DivideCommand(num), num, true);
 		break;
 	case ArithmeticOperator::Mod:
-		calcProcessor->AddCommand(new ModCommand(num), num);
+		calcProcessor->AddCommand(new ModCommand(num), num, true);
 		break;
 	case ArithmeticOperator::Equals:
-		calcProcessor->AddCommand(new EqualsCommand(), num);
+		calcProcessor->AddCommand(new EqualsCommand(), num, false);
 		break;
 	}
-	mNumberString.clear();
+	mNumberString.Clear();
 
 	mLabelString.Append(mBtnLabelCodes[id]);
 
 	if (id == 15) // equals
 	{
-		//ProcessOperation();
-		//mLabel->SetLabelText(mLabelString));
-
 		float number = calcProcessor->ExecuteCommands();
 
 		// ran into an error
@@ -237,6 +239,7 @@ void MainWindow::ProcessArithmeticOperators(unsigned int id)
 		}
 		else
 		{
+			mPrevLabel->SetLabelText(mLabelString);
 			if ((int)num == num)
 			{
 				mLabelString = std::to_string((int)number);
@@ -250,88 +253,6 @@ void MainWindow::ProcessArithmeticOperators(unsigned int id)
 		}
 	}
 }
-
-//void MainWindow::OnReSize(wxSizeEvent& event)
-//{
-//	if (bStartUpReSize)
-//	{
-//		bStartUpReSize = false;
-//		return;
-//	}
-//
-//	// calculating resize scaler
-//	int width = event.GetSize().GetWidth();
-//	int height = event.GetSize().GetHeight();
-//
-//	float widthScaler = (float)width / mWindowWidth;
-//	float heightScaler = (float)height / mWindowHeight;
-//
-//	// updating variables 
-//	mWindowWidth = width;
-//	mWindowHeight = height;
-//
-//	mXOffset *= widthScaler;
-//	mYOffset *= heightScaler;
-//
-//	// Resize and reposition buttons
-//	wxPoint btnPos;
-//	wxSize btnSize(mBtnWidth * widthScaler, mBtnHeight * heightScaler);
-//	wxButton* btn;
-//
-//	mBtnTopPadding *= heightScaler;
-//
-//	for (unsigned int x = 0; x < M_FIELD_WIDTH; x++)
-//	{
-//		for (unsigned int y = 0; y < M_FIELD_HEIGHT; y++)
-//		{
-//			btn = mButtons[y * M_FIELD_WIDTH + x];
-//
-//			btnPos = btn->GetPosition();
-//
-//			btnPos.x = ((x * (mBtnWidth * widthScaler)) + ((x + 1) * mXOffset));
-//			btnPos.y = ((y * (mBtnHeight * heightScaler)) + ((y + 1) * mYOffset)) + mBtnTopPadding;
-//
-//			btn->SetPosition(btnPos);
-//			btn->SetSize(btnSize);
-//		}
-//	}
-//
-//	btnPos = mClearBtn->GetPosition();
-//	btnSize = mClearBtn->GetSize();
-//
-//	btnPos.x *= widthScaler;
-//	btnPos.y *= heightScaler;
-//
-//	btnSize.x *= widthScaler;
-//	btnSize.y *= heightScaler;
-//
-//	mClearBtn->SetPosition(btnPos);
-//	mClearBtn->SetSize(btnSize);
-//
-//	mBtnWidth *= widthScaler;
-//	mBtnHeight *= heightScaler;
-//
-//	// reposition and resizing the label
-//	mLabelWidth *= widthScaler;
-//	mLabelHeight *= heightScaler;
-//
-//	mFontSize = mFontSize * heightScaler - mFontSize;
-//
-//	wxPoint labelPos = mLabel->GetPosition();
-//
-//	labelPos.x *= widthScaler;
-//	labelPos.y *= heightScaler;
-//
-//	mLabel->SetPosition(labelPos);
-//	mLabel->SetSize(wxSize(mLabelWidth, mLabelHeight));
-//	mPrevLabel->SetSize(wxSize(mLabelWidth, mLabelHeight));
-//
-//	mMainFont->SetPointSize(mFontSize);
-//	mLabel->SetFont(*mMainFont);
-//	mPrevLabel->SetFont(*mMainFont);
-//
-//	event.Skip();
-//}
 
 void MainWindow::ProcessNumbers(unsigned int id)
 {
@@ -357,119 +278,14 @@ void MainWindow::ProcessNumbers(unsigned int id)
 	}
 }
 
-void MainWindow::ProcessOperation()
+void MainWindow::SetFontSize(float size)
 {
-	float num = 0;
-	std::list<ArithmeticOperator>::iterator opIt = mOperators.begin();
-	std::list<ArithmeticOperator>::iterator opItEraser = opIt;
-	std::list<float>::iterator fIt = mNumbers.begin();
-	std::list<float>::iterator fItEraser = fIt;
+	mMainFont->SetPointSize(size);
+	mLabel->SetFont(*mMainFont);
+}
 
-	ArithmeticOperator ao = *opIt;
-
-	if (ao != ArithmeticOperator::Multiply && ao != ArithmeticOperator::Divide && ao != ArithmeticOperator::Mod)
-	{
-		num += *fIt;
-		mNumbers.pop_front();
-		fIt = mNumbers.begin();
-
-		opIt++;
-	}
-
-	// first do only multiply, divide, and mod -> high precedence
-	for (; fIt != mNumbers.end();)
-	{
-		ao = *opIt;
-		if (ao == ArithmeticOperator::Multiply || ao == ArithmeticOperator::Divide || ao == ArithmeticOperator::Mod)
-		{
-			int currentNum = *fIt;
-			fItEraser = fIt;
-			fIt++; // next num is stored in here now 
-			mNumbers.erase(fItEraser);
-
-			switch (ao)
-			{
-			case ArithmeticOperator::Multiply:
-				currentNum = calcProcessor->Multiply(currentNum, *fIt);
-				break;
-			case ArithmeticOperator::Divide:
-				currentNum = calcProcessor->Divide(currentNum, *fIt);
-				break;
-			case ArithmeticOperator::Mod:
-				currentNum = calcProcessor->Mod((int)currentNum, (int)*fIt);
-				break;
-			}
-
-			// delete prev value and make current the new value 
-			*fIt = currentNum;
-
-
-			// delete the operator 
-			opItEraser = opIt;
-			opIt++;
-			mOperators.erase(opItEraser);
-		}
-		else
-		{
-			fIt++;
-			opIt++;
-		}
-	}
-
-	fIt = mNumbers.begin();
-	opIt = mOperators.begin();
-
-	if (mNumbers.size() == 1 && *opIt == ArithmeticOperator::Equals)
-	{
-		num = *fIt;
-	}
-	else
-	{
-		for (; fIt != mNumbers.end();)
-		{
-			switch (*opIt)
-			{
-			case ArithmeticOperator::Add:
-				num = calcProcessor->Add(num, *fIt);
-				break;
-			case ArithmeticOperator::Minus:
-				num = calcProcessor->Subtract(num, *fIt);
-				break;
-			case ArithmeticOperator::Multiply:
-				num = calcProcessor->Multiply(num, *fIt);
-				break;
-			case ArithmeticOperator::Divide:
-				num = calcProcessor->Divide(num, *fIt);
-				break;
-			case ArithmeticOperator::Mod:
-				num = calcProcessor->Mod((int)num, (int)*fIt);
-				break;
-			case ArithmeticOperator::Equals:
-				mOperators.clear();
-				mNumbers.clear();
-				break;
-			}
-
-			mOperators.pop_front();
-			opIt = mOperators.begin();
-
-			mNumbers.pop_front();
-			fIt = mNumbers.begin();
-		}
-	}
-
-	mOperators.clear();
-	mNumbers.clear();
-
-	mPrevLabel->SetLabelText(mLabelString);
-	if ((int)num == num)
-	{
-		mLabelString = std::to_string((int)num);
-		mNumberString = mLabelString;
-	}
-	else
-	{
-		mLabelString = std::to_string(num);
-		mNumberString = mLabelString;
-	}
+float MainWindow::GetFontSizeCalc(wxString& str)
+{
+	float fSize = mWindowWidth / str.length() + 3;
+	return fSize > 34 ? 34 : fSize;
 }

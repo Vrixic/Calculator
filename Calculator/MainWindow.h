@@ -68,11 +68,6 @@ private:
 	wxString mLabelString = "0"; // string visble to user
 	wxString mNumberString = "";
 
-	std::vector<float> mNums; // all user entered nums
-
-	std::list<float> mNumbers; // list of floats 
-	std::list<ArithmeticOperator> mOperators;
-
 	// all buttons
 	ButtonFactory mButtonFactory;
 	wxButton* mAddButton;
@@ -86,7 +81,6 @@ private:
 	wxButton* mHexButton;
 	wxButton* mEqualsButton;
 	wxButton* mClearBtn = nullptr;
-	//wxButton* mClearButton;
 	wxButton** mNumberButtons;
 
 	// Processor
@@ -97,13 +91,13 @@ private:
 
 	void ProcessArithmeticOperators(unsigned int id);
 
-	void OnReSize(wxSizeEvent& event);
-
 	//void OnKeyDown(wxKeyEvent& event);
 
-	void ProcessOperation();
-
 	void ProcessNumbers(unsigned int id);
+
+	void SetFontSize(float size);
+
+	float GetFontSizeCalc(wxString& str);
 
 public:
 	MainWindow();

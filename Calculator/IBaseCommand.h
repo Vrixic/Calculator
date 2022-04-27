@@ -12,6 +12,9 @@ public:
 	float mLeftNumber;
 	float mRightNumber;
 
+	IBaseCommand* mPrevCommand = nullptr;
+	IBaseCommand* mNextCommand = nullptr;
+
 	/*
 	* If the commands runs into an error than bError will be flagged
 	*/
@@ -80,6 +83,12 @@ public:
 	void Execute()
 	{
 		mLeftNumber *= mRightNumber;
+
+		if (mPrevCommand != nullptr)
+			mPrevCommand->mRightNumber = mLeftNumber;
+
+		if (mNextCommand != nullptr)
+			mNextCommand->mLeftNumber = mLeftNumber;
 	}
 };
 
@@ -102,6 +111,12 @@ public:
 			bError = true;
 		else
 			mLeftNumber /= mRightNumber;
+
+		if (mPrevCommand != nullptr)
+			mPrevCommand->mRightNumber = mLeftNumber;
+
+		if (mNextCommand != nullptr)
+			mNextCommand->mLeftNumber = mLeftNumber;
 	}
 };
 
@@ -121,6 +136,12 @@ public:
 	void Execute()
 	{
 		mLeftNumber = (int)mLeftNumber % (int)mRightNumber;
+
+		if (mPrevCommand != nullptr)
+			mPrevCommand->mRightNumber = mLeftNumber;
+
+		if (mNextCommand != nullptr)
+			mNextCommand->mLeftNumber = mLeftNumber;
 	}
 };
 
